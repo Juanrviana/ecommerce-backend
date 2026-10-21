@@ -1,7 +1,15 @@
-POST http://localhost:3000/api/categories
+### Criar um Produto de teste
+POST http://localhost:3000/api/products
 Content-Type: application/json
 
 {
-  "name": "Eletrónicos",
-  "slug": "eletronicos"
+  "name": "Teclado Mecânico Gamer",
+  "description": "Teclado mecânico RGB switch blue",
+  "price": 250.00,
+  "stock_quantity": 15,
+  "image_url": "https://exemplo.com/teclado.jpg",
+  "category_id": 1
 }
+
+### Listar Todos os Produtos
+GET http://localhost:3000/api/products
