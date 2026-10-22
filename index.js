@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const db = require('./db'); // Importa o nosso conector da base de dados
@@ -69,6 +70,40 @@ app.get('/api/products', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Erro ao listar produtos." });
+    }
+});
+
+// --- UTILIZADORES E AUTENTICAÇÃO ---
+
+// 1. Registrar um novo utilizador
+app.post('/api/register', async (req, res) => {
+    try{
+        const { name, email, password, role } = req.body;
+
+        // Verificar se o utilizador já existe
+        const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userExists.rows.length > 0) {
+            return res.status(400).json({ error: "Este email já está registado."});
+        }
+
+        // Encriptar a password com segurança (salt rounds = 10)
+        const salt = await bcrypt.genSalt(10);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        // Inserir o novo utilizador na base de dados
+        const result = await db.query(
+            `INSERT INTO users (name, email, password_hash, role)
+            VALUES ($1, $2, $3, $4) RETURNING id, name, email, role, created_at`,
+            [name, email, passwordHash, role || 'customer']
+        );
+
+        res.status(201).json({
+            message: "Utilizador registado com sucesso! ",
+            user: result.rows[0]
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Erro ao registar utilizador."});
     }
 });
 
